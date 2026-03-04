@@ -1,7 +1,7 @@
 ﻿# Berufsschulprojekt - Survey Portal 🏠📊
 
 ## Projektübersicht
-Dieses Portal ermöglicht es der „Even Smarter Home“ (Hersteller & Online-Händler), direktes Feedback von Kunden zu Produkten und Dienstleistungen einzuholen[cite: 5, 17]. [cite_start]Das System bietet Administratoren Werkzeuge zur Umfrageverwaltung und motiviert Teilnehmer durch ein integriertes Belohnungssystem.
+Dieses Portal ermöglicht es der „Even Smarter Home“ (Hersteller & Online-Händler), direktes Feedback von Kunden zu Produkten und Dienstleistungen einzuholen. Das System bietet Administratoren Werkzeuge zur Umfrageverwaltung und motiviert Teilnehmer durch ein integriertes Belohnungssystem.
 
 ## Kern-Features
 * **Rollenbasiertes Zugriffssystem:** Differenzierte Funktionen für Administratoren, registrierte Kunden und Gäste.
@@ -17,3 +17,4 @@ Dieses Portal ermöglicht es der „Even Smarter Home“ (Hersteller & Online-H�
 * **ORM:** Doctrine (MySQL/MariaDB) 
 * **Schnittstellen:** JSON-basierter Import von Produktkategorien aus dem eCommerce-System
 * **Sicherheit:** Prepared Statements, CSRF-Schutz, Passwort-Hashes (BCrypt/Argon2) und Captcha-Integration.
+
