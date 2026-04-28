@@ -1,20 +1,70 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello RegistrationController!{% endblock %}
+{% block title %}Anmeldung & Registrierung{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+        <div class="card shadow-lg border-0" style="max-width: 450px; width: 100%; border-radius: 15px;">
+            <div class="card-body p-5">
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+                {# Tab-Navigation für einfaches Umschalten #}
+                <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Registrieren</button>
+                    </li>
+                </ul>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/symfony/Berufsschulprojekt/src/Controller/RegistrationController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/symfony/Berufsschulprojekt/templates/registration/survey.html.twig</code></li>
-    </ul>
-</div>
+                <div class="tab-content">
+                    {# --- LOGIN BEREICH --- #}
+                    <div class="tab-pane fade show active" id="login" role="tabpanel">
+                        <h2 class="text-center fw-bold mb-4">Willkommen zurück!</h2>
+                        <form action="{{ path('login') }}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">E-Mail Adresse</label>
+                                <input type="email" name="_username" class="form-control form-control-lg bg-light border-0" placeholder="name@beispiel.de" required autofocus>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold">Passwort</label>
+                                <input type="password" name="_password" class="form-control form-control-lg bg-light border-0" placeholder="••••••••" required>
+                            </div>
+
+                            {# CSRF Token Schutz von Symfony #}
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">Anmelden</button>
+                        </form>
+                    </div>
+
+                    {# --- REGISTRIERUNGS BEREICH --- #}
+                    <div class="tab-pane fade" id="register" role="tabpanel">
+                        <h2 class="text-center fw-bold mb-4">Konto erstellen</h2>
+                        <form action="{{ path('registration') }}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Benutzername</label>
+                                <input type="text" name="username" class="form-control form-control-lg bg-light border-0" placeholder="Dein Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">E-Mail Adresse</label>
+                                <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="E-Mail" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold">Passwort wählen</label>
+                                <input type="password" name="password" class="form-control form-control-lg bg-light border-0" placeholder="Min. 8 Zeichen" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark w-100 py-3 fw-bold shadow-sm">Jetzt Registrieren</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if error is defined and error %}
+                    <div class="alert alert-danger mt-4 small border-0">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
 {% endblock %}
