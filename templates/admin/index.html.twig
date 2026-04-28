@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block body %}
+    {% block page_content_navbar %}
+        {% include 'layout/navbar/navbar.html.twig' %}
+    {% endblock %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-white sidebar shadow-sm rounded p-3 mb-4">
+                <div class="position-sticky">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted text-uppercase small">
+                        <span>Verwaltung</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active fw-bold text-primary" href="#">
+                                <i class="bi bi-speedometer2 me-2"></i> Admin-Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="#">
+                                <i class="bi bi-list-check me-2"></i> Umfrage-Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="#">
+                                <i class="bi bi-people me-2"></i> Benutzer-Management
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 fw-bold">Admin-Zentrale</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSurveyModal">
+                            <i class="bi bi-plus-lg me-1"></i> Neue Umfrage erstellen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-primary text-white p-3">
+                            <small class="opacity-75">Offene Upgrades</small>
+                            <h2 class="fw-bold mb-0">12</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm p-3">
+                            <small class="text-muted">Aktive Umfragen</small>
+                            <h2 class="fw-bold mb-0 text-success">8</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm p-3">
+                            <small class="text-muted">User-Meldungen</small>
+                            <h2 class="fw-bold mb-0 text-danger">3</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-xl-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 fw-bold">
+                                <i class="bi bi-pencil-square me-2 text-primary"></i>Letzte Umfragen
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Titel</th>
+                                        <th>Kategorie</th>
+                                        <th>Laufzeit</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Aktion</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td><span class="fw-bold">Stadtbegrünung</span></td>
+                                        <td><span class="badge bg-light text-dark">Umwelt</span></td>
+                                        <td><small>01.05 - 30.05</small></td>
+                                        <td><span class="badge bg-success-soft text-success border border-success">Aktiv</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary" title="Bearbeiten"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger" title="Löschen"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="fw-bold">Parkraum-Konzept</span></td>
+                                        <td><span class="badge bg-light text-dark">Verkehr</span></td>
+                                        <td><small>Beendet</small></td>
+                                        <td><span class="badge bg-secondary">Archiv</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 fw-bold">
+                                <i class="bi bi-person-up me-2 text-warning"></i>Upgrade-Anfragen
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold">user_492@web.de</span>
+                                        <small class="text-muted">Gast <i class="bi bi-arrow-right"></i> Kunde</small>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-success w-100">Freigeben</button>
+                                        <button class="btn btn-sm btn-outline-danger w-100">Ablehnen</button>
+                                    </div>
+                                </li>
+                                <li class="list-group-item p-3 text-center">
+                                    <a href="#" class="small text-decoration-none">Alle 12 User anzeigen</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {% block admin_survey_form %}
+        {% include 'admin/survey_form.html.twig' with {
+            'categories' : categories,
+        }%}
+    {% endblock %}
+
+    <style>
+        .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+        .nav-link:hover { background-color: #f8f9fa; border-radius: 5px; }
+    </style>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% block survey_form %}
+    <div class="modal fade" id="addSurveyModal" tabindex="-1" aria-labelledby="addSurveyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form action="{{ path('addSurvey') }}" method="POST">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title" id="addSurveyModalLabel">
+                            <i class="bi bi-file-earmark-plus me-2"></i>Neue Umfrage konfigurieren
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Titel der Umfrage</label>
+                                <input type="text" class="form-control" name="survey_title" placeholder="z.B. Zufriedenheit Stadtpark">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Kategorie</label>
+                                <select class="form-select" name="category">
+                                    <option selected disabled>Wählen...</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Kurzbeschreibung</label>
+                            <textarea class="form-control" name="survey_description" rows="2" placeholder="Worum geht es in dieser Umfrage?"></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Startdatum</label>
+                                <input type="date" name="start_date" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Enddatum</label>
+                                <input type="date" name="end_date" class="form-control">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-question-circle me-2"></i>Fragen-Konfiguration</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary">+ Frage hinzufügen</button>
+                            </div>
+
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control fw-bold" name="question" placeholder="Frage eingeben (z.B. Wie finden Sie den neuen Brunnen?)">
+                                    </div>
+
+                                    <div class="row g-2 ms-3">
+                                        <div class="col-11">
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text">A</span>
+                                                <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit 1">
+                                            </div>
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text">B</span>
+                                                <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit 2">
+                                            </div>
+                                        </div>
+                                        <div class="col-1 d-flex align-items-center">
+                                            <button type="button" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-sm text-decoration-none ps-3">+ Option hinzufügen</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light border-top-0 p-3">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary px-4">Umfrage live schalten</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

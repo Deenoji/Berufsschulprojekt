@@ -9,7 +9,123 @@
     {% endblock %}
 
 
-    <div class="container">
-      dsadsadsadasdas
+    <div class="container mt-5">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+            <div>
+                <h1 class="fw-bold mb-1">Umfrage-Übersicht</h1>
+                <p class="text-muted mb-0">Entdecke aktuelle Themen und teile deine Meinung.</p>
+            </div>
+
+            <div class="btn-group shadow-sm" role="group" aria-label="Umfrage Filter">
+                <input type="radio" class="btn-check" name="filter" id="filter1" checked>
+                <label class="btn btn-outline-primary px-4" for="filter1">Alle</label>
+
+                <input type="radio" class="btn-check" name="filter" id="filter2">
+                <label class="btn btn-outline-primary px-4" for="filter2">Aktiv</label>
+
+                <input type="radio" class="bi-check" name="filter" id="filter3">
+                <label class="btn btn-outline-primary px-4" for="filter3">Abgeschlossen</label>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            {% for survey in surveys %}
+                <div class="col-12 mb-3">
+                    <div class="card border-0 shadow-sm hover-shadow-transition">
+                        {# Wir legen das Formular um die gesamte Card oder den Collapse-Bereich #}
+                        <form action="{{ path('survey') }}" method="POST">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-6 mb-3 mb-lg-0">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-success-soft text-success me-2 border border-success">Aktiv</span>
+                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> Bis {{ survey.endDate.date|date("m.d.Y") }}</small>
+                                        </div>
+                                        <h3 class="fw-bold">{{ survey.title }}</h3>
+                                        <p class="text-muted">{{ survey.description }}</p>
+                                        <div class="d-flex gap-2">
+                                            <span class="badge bg-light text-dark fw-normal"><i class="bi bi-tag me-1"></i> Mobilität</span>
+                                            <button class="btn btn-sm btn-light text-dark fw-normal border-0" type="button" data-bs-toggle="collapse" data-bs-target="#details-{{ survey.id }}">
+                                                <i class="bi bi-list-ul me-1"></i> Fragen anzeigen
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 mb-3 mb-lg-0 border-start border-end px-4">
+                                        <div class="text-center">
+                                            <small class="text-muted d-block mb-2">Aktuelle Beteiligung</small>
+                                            <div class="progress mb-2" style="height: 20px; border-radius: 10px;">
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: 65%;">65%</div>
+                                            </div>
+                                            <small class="fw-bold">842 Teilnehmer</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-2 text-center text-lg-end">
+                                        {# Der Button triggert jetzt das Formular #}
+                                        <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">Abstimmen</button>
+                                    </div>
+                                </div>
+
+                                {# Aufklappbarer Fragenbereich #}
+                                <div class="collapse" id="details-{{ survey.id }}">
+                                    <div class="mt-4 pt-4 border-top">
+                                        {% for question in questions|filter(q => q.surveyId == survey.id) %}
+                                            <div class="mb-4">
+                                                <label class="fw-bold mb-3 d-block">{{ loop.index }}. {{ question.questionText }}</label>
+
+                                                <div class="d-flex flex-column gap-2 ms-3">
+                                                    {% for option in options|filter(o => o.questionId == question.id) %}
+                                                        <div class="form-check custom-option-check p-2 rounded border">
+                                                            {# name="answers[question_id]" stellt sicher, dass pro Frage nur eine Option gewählt wird #}
+                                                            <input class="form-check-input ms-1" type="radio"
+                                                                   name="answers[{{ question.id }}]"
+                                                                   id="opt-{{ option.id }}"
+                                                                   value="{{ option.id }}" required>
+                                                            <label class="form-check-label ms-2 d-block w-100" for="opt-{{ option.id }}">
+                                                                {{ option.optionText }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted small">Keine Fragen verfügbar.</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
     </div>
+
+    <style>
+        /* Ein kleiner Bonus-Effekt für die Karten */
+        .hover-shadow-transition {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .hover-shadow-transition:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .bg-success-soft {
+            background-color: rgba(25, 135, 84, 0.1);
+        }
+        .custom-option-check:hover {
+            background-color: #f8f9fa;
+            border-color: #0d6efd !important;
+            cursor: pointer;
+        }
+        .form-check-input:checked + .form-check-label {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    </style>
 {% endblock %}
