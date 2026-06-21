@@ -11,44 +11,140 @@
 
     <div class="container mt-5">
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-            <div>
-                <h1 class="fw-bold mb-1">Umfrage-Übersicht</h1>
-                <p class="text-muted mb-0">Entdecke aktuelle Themen und teile deine Meinung.</p>
+        {# Flash-Meldungen (z. B. nach dem Abstimmen) #}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="mb-4">
+            <h1 class="fw-bold mb-1">Umfrage-Übersicht</h1>
+            <p class="text-muted mb-0">Entdecke aktuelle Themen und teile deine Meinung.</p>
+        </div>
+
+        {# ===================== FILTER & SUCHE ===================== #}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-center">
+                    {# Stichwortsuche #}
+                    <div class="col-lg-5">
+                        <label class="form-label small fw-bold text-muted">Stichwortsuche</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="text" id="surveySearch" class="form-control border-start-0"
+                                   placeholder="Titel oder Beschreibung durchsuchen ...">
+                        </div>
+                    </div>
+
+                    {# Status-Filter #}
+                    <div class="col-lg-4">
+                        <label class="form-label small fw-bold text-muted">Status</label>
+                        <div class="btn-group w-100" role="group" aria-label="Status-Filter">
+                            <input type="radio" class="btn-check" name="filter" id="filter1" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="filter1">Alle</label>
+
+                            <input type="radio" class="btn-check" name="filter" id="filter2" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="filter2">Aktiv</label>
+
+                            <input type="radio" class="btn-check" name="filter" id="filter3" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="filter3">Abgeschlossen</label>
+                        </div>
+                    </div>
+
+                    {# Reset #}
+                    <div class="col-lg-3 text-lg-end">
+                        <label class="form-label small fw-bold text-muted d-block d-lg-none">&nbsp;</label>
+                        <button type="button" id="resetFilters" class="btn btn-light border w-100 w-lg-auto">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Zurücksetzen
+                        </button>
+                    </div>
+                </div>
+
+                {# Kategorie-Filter (Mehrfachauswahl moeglich) #}
+                {% if categories is not empty %}
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold text-muted d-block">Kategorie</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for category in categories %}
+                                <input type="checkbox" class="btn-check" name="categoryFilter"
+                                       id="cat-{{ category.id }}" value="{{ category.id }}" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="cat-{{ category.id }}">
+                                    <i class="bi bi-tag me-1"></i>{{ category.title }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
+        </div>
 
-            <div class="btn-group shadow-sm" role="group" aria-label="Umfrage Filter">
-                <input type="radio" class="btn-check" name="filter" id="filter1" checked>
-                <label class="btn btn-outline-primary px-4" for="filter1">Alle</label>
-
-                <input type="radio" class="btn-check" name="filter" id="filter2">
-                <label class="btn btn-outline-primary px-4" for="filter2">Aktiv</label>
-
-                <input type="radio" class="bi-check" name="filter" id="filter3">
-                <label class="btn btn-outline-primary px-4" for="filter3">Abgeschlossen</label>
+        {# Hinweis fuer reine Nutzer, dass Abstimmen Kunden vorbehalten ist #}
+        {% if app.user and not is_granted('ROLE_CUSTOMER') %}
+            <div class="alert alert-warning border-0 d-flex align-items-center">
+                <i class="bi bi-lock-fill me-2"></i>
+                <div>
+                    Als Nutzer kannst du Umfragen ansehen, aber noch nicht abstimmen.
+                    Stelle in deinem <a href="{{ path('account') }}">Konto</a> eine Aufstufungsanfrage zum Kunden.
+                </div>
             </div>
+        {% endif %}
+
+        {# Hinweis, wenn nichts auf die Filter passt #}
+        <div id="noResults" class="alert alert-info border-0 text-center d-none">
+            <i class="bi bi-search me-2"></i>Keine Umfragen passen zu deiner Filterauswahl.
         </div>
 
         <div class="row g-4">
 
             {% for survey in surveys %}
-                <div class="col-12 mb-3">
+                {% set isActive = active_map[survey.id]|default(false) %}
+                {% set part = participation[survey.id]|default({ 'count': 0, 'percent': 0 }) %}
+                {% set hasVoted = voted_map[survey.id]|default(false) %}
+                {% set showResults = hasVoted or not isActive %}
+                {% set cats = survey_categories[survey.id]|default([{ 'id': survey.categoryId, 'title': category_map[survey.categoryId]|default('Allgemein') }]) %}
+                {% set catIds = cats|map(c => c.id)|join(' ') %}
+                {% set catNames = cats|map(c => c.title)|join(' ') %}
+                {% set canVote = is_granted('ROLE_CUSTOMER') %}
+
+                <div class="col-12 mb-3"
+                     data-survey-card
+                     data-status="{{ isActive ? 'active' : 'closed' }}"
+                     data-category="{{ catIds }}"
+                     data-search="{{ (survey.title ~ ' ' ~ survey.description ~ ' ' ~ catNames)|lower }}">
                     <div class="card border-0 shadow-sm hover-shadow-transition">
-                        {# Wir legen das Formular um die gesamte Card oder den Collapse-Bereich #}
-                        <form action="{{ path('survey') }}" method="POST">
+                        {# Formular umschliesst die gesamte Card (eine Umfrage = ein Formular) #}
+                        <form action="{{ path('surveyVote') }}" method="POST">
                             <div class="card-body p-4">
                                 <div class="row align-items-center">
                                     <div class="col-lg-6 mb-3 mb-lg-0">
                                         <div class="d-flex align-items-center mb-2">
-                                            <span class="badge bg-success-soft text-success me-2 border border-success">Aktiv</span>
-                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> Bis {{ survey.endDate.date|date("m.d.Y") }}</small>
+                                            {% if isActive %}
+                                                <span class="badge bg-success-soft text-success me-2 border border-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">Abgeschlossen</span>
+                                            {% endif %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                Bis {{ survey.endDate ? survey.endDate|date('d.m.Y') : '—' }}
+                                            </small>
                                         </div>
                                         <h3 class="fw-bold">{{ survey.title }}</h3>
                                         <p class="text-muted">{{ survey.description }}</p>
-                                        <div class="d-flex gap-2">
-                                            <span class="badge bg-light text-dark fw-normal"><i class="bi bi-tag me-1"></i> Mobilität</span>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for c in cats %}
+                                                <span class="badge bg-light text-dark fw-normal">
+                                                    <i class="bi bi-tag me-1"></i> {{ c.title }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="mt-1">
                                             <button class="btn btn-sm btn-light text-dark fw-normal border-0" type="button" data-bs-toggle="collapse" data-bs-target="#details-{{ survey.id }}">
-                                                <i class="bi bi-list-ul me-1"></i> Fragen anzeigen
+                                                <i class="bi {{ showResults ? 'bi-bar-chart-line' : 'bi-list-ul' }} me-1"></i>
+                                                {{ showResults ? 'Ergebnisse anzeigen' : 'Fragen anzeigen' }}
                                             </button>
                                         </div>
                                     </div>
@@ -57,39 +153,84 @@
                                         <div class="text-center">
                                             <small class="text-muted d-block mb-2">Aktuelle Beteiligung</small>
                                             <div class="progress mb-2" style="height: 20px; border-radius: 10px;">
-                                                <div class="progress-bar bg-primary" role="progressbar" style="width: 65%;">65%</div>
+                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                     style="width: {{ part.percent }}%;"
+                                                     aria-valuenow="{{ part.percent }}" aria-valuemin="0" aria-valuemax="100">
+                                                    {{ part.percent }}%
+                                                </div>
                                             </div>
-                                            <small class="fw-bold">842 Teilnehmer</small>
+                                            <small class="fw-bold">{{ part.count }} Teilnehmer</small>
                                         </div>
                                     </div>
 
                                     <div class="col-lg-2 text-center text-lg-end">
-                                        {# Der Button triggert jetzt das Formular #}
-                                        <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">Abstimmen</button>
+                                        {% if not isActive %}
+                                            <button type="button" class="btn btn-secondary w-100 py-2 shadow-sm" disabled>Beendet</button>
+                                        {% elseif hasVoted %}
+                                            <button type="button" class="btn btn-success w-100 py-2 shadow-sm" disabled>
+                                                <i class="bi bi-check2-circle me-1"></i> Abgestimmt
+                                            </button>
+                                        {% elseif not canVote %}
+                                            {# Reine ROLE_USER / Gaeste: Button deaktiviert #}
+                                            <button type="button" class="btn btn-primary w-100 py-2 shadow-sm" disabled title="Nur Kunden dürfen abstimmen">
+                                                <i class="bi bi-lock me-1"></i> Abstimmen
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">Abstimmen</button>
+                                        {% endif %}
                                     </div>
                                 </div>
 
-                                {# Aufklappbarer Fragenbereich #}
-                                <div class="collapse" id="details-{{ survey.id }}">
+                                {# Aufklappbarer Bereich: Fragen ODER Ergebnisse #}
+                                <div class="collapse {{ showResults ? 'show' : '' }}" id="details-{{ survey.id }}">
                                     <div class="mt-4 pt-4 border-top">
                                         {% for question in questions|filter(q => q.surveyId == survey.id) %}
                                             <div class="mb-4">
-                                                <label class="fw-bold mb-3 d-block">{{ loop.index }}. {{ question.questionText }}</label>
+                                                <label class="fw-bold mb-3 d-block">{{ question.questionText }}</label>
 
-                                                <div class="d-flex flex-column gap-2 ms-3">
-                                                    {% for option in options|filter(o => o.questionId == question.id) %}
-                                                        <div class="form-check custom-option-check p-2 rounded border">
-                                                            {# name="answers[question_id]" stellt sicher, dass pro Frage nur eine Option gewählt wird #}
-                                                            <input class="form-check-input ms-1" type="radio"
-                                                                   name="answers[{{ question.id }}]"
-                                                                   id="opt-{{ option.id }}"
-                                                                   value="{{ option.id }}" required>
-                                                            <label class="form-check-label ms-2 d-block w-100" for="opt-{{ option.id }}">
-                                                                {{ option.optionText }}
-                                                            </label>
-                                                        </div>
-                                                    {% endfor %}
-                                                </div>
+                                                {% if showResults %}
+                                                    {# --- ERGEBNIS-BALKENDIAGRAMM --- #}
+                                                    {% set qTotal = question_totals[question.id]|default(0) %}
+                                                    <div class="ms-3">
+                                                        {% for option in options|filter(o => o.questionId == question.id) %}
+                                                            {% set votes = option_votes[option.id]|default(0) %}
+                                                            {% set pct = qTotal > 0 ? (votes / qTotal * 100)|round : 0 %}
+                                                            {% set mine = user_choices[option.id]|default(false) %}
+                                                            <div class="mb-3">
+                                                                <div class="d-flex justify-content-between small mb-1">
+                                                                    <span class="{{ mine ? 'fw-bold text-success' : '' }}">
+                                                                        {{ option.optionText }}
+                                                                        {% if mine %}<i class="bi bi-check-circle-fill ms-1"></i> <span class="badge bg-success-soft text-success border border-success">Deine Wahl</span>{% endif %}
+                                                                    </span>
+                                                                    <span class="text-muted">{{ votes }} Stimme(n) · {{ pct }}%</span>
+                                                                </div>
+                                                                <div class="progress" style="height: 18px; border-radius: 8px;">
+                                                                    <div class="progress-bar {{ mine ? 'bg-success' : 'bg-primary' }}" role="progressbar"
+                                                                         style="width: {{ pct }}%;"
+                                                                         aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                        <small class="text-muted">Gesamt: {{ qTotal }} Stimme(n)</small>
+                                                    </div>
+                                                {% else %}
+                                                    {# --- ABSTIMM-OPTIONEN --- #}
+                                                    <div class="d-flex flex-column gap-2 ms-3">
+                                                        {% for option in options|filter(o => o.questionId == question.id) %}
+                                                            <div class="form-check custom-option-check p-2 rounded border">
+                                                                {# name="answers[question_id]" -> pro Frage genau eine Option #}
+                                                                <input class="form-check-input ms-1" type="radio"
+                                                                       name="answers[{{ question.id }}]"
+                                                                       id="opt-{{ option.id }}"
+                                                                       value="{{ option.id }}"
+                                                                        {{ not canVote ? 'disabled' : '' }}>
+                                                                <label class="form-check-label ms-2 d-block w-100" for="opt-{{ option.id }}">
+                                                                    {{ option.optionText }}
+                                                                </label>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         {% else %}
                                             <p class="text-muted small">Keine Fragen verfügbar.</p>
@@ -100,10 +241,78 @@
                         </form>
                     </div>
                 </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info border-0 text-center">
+                        Aktuell sind keine Umfragen verfügbar.
+                    </div>
+                </div>
             {% endfor %}
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const statusModes = { filter1: 'all', filter2: 'active', filter3: 'closed' };
+            const searchInput = document.getElementById('surveySearch');
+            const cards = Array.from(document.querySelectorAll('[data-survey-card]'));
+            const noResults = document.getElementById('noResults');
+
+            function currentStatus() {
+                const checked = document.querySelector('input[name="filter"]:checked');
+                return checked ? (statusModes[checked.id] || 'all') : 'all';
+            }
+
+            function selectedCategories() {
+                return Array.from(document.querySelectorAll('input[name="categoryFilter"]:checked'))
+                    .map(function (i) { return i.value; });
+            }
+
+            function applyFilters() {
+                const status = currentStatus();
+                const cats = selectedCategories();
+                const term = (searchInput.value || '').trim().toLowerCase();
+                let visible = 0;
+
+                cards.forEach(function (card) {
+                    const statusOk = (status === 'all' || status === card.getAttribute('data-status'));
+                    const cardCats = (card.getAttribute('data-category') || '').split(' ').filter(Boolean);
+                    const catOk = (cats.length === 0 || cats.some(function (c) { return cardCats.indexOf(c) !== -1; }));
+                    const searchOk = (term === '' || (card.getAttribute('data-search') || '').indexOf(term) !== -1);
+
+                    const show = statusOk && catOk && searchOk;
+                    card.style.display = show ? '' : 'none';
+                    if (show) { visible++; }
+                });
+
+                if (noResults) {
+                    noResults.classList.toggle('d-none', visible !== 0 || cards.length === 0);
+                }
+            }
+
+            // Events
+            searchInput.addEventListener('input', applyFilters);
+            document.querySelectorAll('input[name="filter"]').forEach(function (el) {
+                el.addEventListener('change', applyFilters);
+            });
+            document.querySelectorAll('input[name="categoryFilter"]').forEach(function (el) {
+                el.addEventListener('change', applyFilters);
+            });
+
+            // Reset
+            const resetBtn = document.getElementById('resetFilters');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    document.getElementById('filter1').checked = true;
+                    document.querySelectorAll('input[name="categoryFilter"]:checked')
+                        .forEach(function (i) { i.checked = false; });
+                    applyFilters();
+                });
+            }
+        });
+    </script>
 
     <style>
         /* Ein kleiner Bonus-Effekt für die Karten */

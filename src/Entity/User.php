@@ -3,100 +3,185 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+#[ORM\Table(name: 'user')]
+#[ORM\UniqueConstraint(name: 'UNIQ_USER_EMAIL', columns: ['email'])]
+#[ORM\HasLifecycleCallbacks]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 60)]
-    private ?string $email = null;
+    #[ORM\Column(length: 60, unique: true)]
+    private string $email = '';
 
-    #[ORM\Column(length: 12)]
-    private ?string $role = null;
+    // Anzeigename aus der Registrierung (optional, Fallback ist die E-Mail).
+    #[ORM\Column(length: 60, nullable: true)]
+    private ?string $username = null;
 
-    #[ORM\Column]
-    private ?int $vote_count = null;
+    // In der Migration heisst die Spalte "role" (Einzahl).
+    #[ORM\Column(length: 16)]
+    private string $role = 'ROLE_USER';
 
-    #[ORM\Column]
-    private ?\DateTime $created_at = null;
+    #[ORM\Column(length: 255)]
+    private string $password = '';
 
-    #[ORM\Column]
-    private ?\DateTime $updated_at = null;
+    #[ORM\Column(name: 'vote_count')]
+    private int $voteCount = 0;
+
+    // NEU: offene Aufstufungsanfrage (Nutzer -> Kunde).
+    #[ORM\Column(name: 'upgrade_requested')]
+    private bool $upgradeRequested = false;
+
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $updatedAt;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId(int $id): static
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(string $email): self
     {
         $this->email = $email;
 
         return $this;
     }
 
-    public function getRole(): ?string
+    /**
+     * Eindeutiger Identifier fuer das Security-System (hier: die E-Mail).
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(?string $username): self
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * Anzeigename: Benutzername, falls gesetzt, sonst die E-Mail.
+     */
+    public function getDisplayName(): string
+    {
+        return $this->username ?: $this->email;
+    }
+
+    public function getRole(): string
     {
         return $this->role;
     }
 
-    public function setRole(string $role): static
+    public function setRole(string $role): self
     {
         $this->role = $role;
 
         return $this;
     }
 
-    public function getVoteCount(): ?int
+    /**
+     * @see UserInterface
+     *
+     * @return string[]
+     */
+    public function getRoles(): array
     {
-        return $this->vote_count;
+        // Jeder eingeloggte Nutzer hat garantiert ROLE_USER.
+        return array_values(array_unique([$this->role, 'ROLE_USER']));
     }
 
-    public function setVoteCount(int $vote_count): static
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
-        $this->vote_count = $vote_count;
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getVoteCount(): int
     {
-        return $this->created_at;
+        return $this->voteCount;
     }
 
-    public function setCreatedAt(\DateTime $created_at): static
+    public function setVoteCount(int $voteCount): self
     {
-        $this->created_at = $created_at;
+        $this->voteCount = $voteCount;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function isUpgradeRequested(): bool
     {
-        return $this->updated_at;
+        return $this->upgradeRequested;
     }
 
-    public function setUpdatedAt(\DateTime $updated_at): static
+    public function setUpgradeRequested(bool $upgradeRequested): self
     {
-        $this->updated_at = $updated_at;
+        $this->upgradeRequested = $upgradeRequested;
 
         return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    #[ORM\PreUpdate]
+    public function refreshUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // Falls temporaere, sensible Daten am User haengen, hier loeschen.
     }
 }

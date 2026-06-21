@@ -10,110 +10,166 @@
 
     <div class="container mt-5">
 
+        {# ===================== STATISTIK ===================== #}
+        <h4 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Statistik</h4>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <div class="text-primary fs-2 mb-1"><i class="bi bi-journal-text"></i></div>
+                    <h3 class="fw-bold mb-0">{{ stats.surveys_total }}</h3>
+                    <p class="text-muted small mb-0">Umfragen gesamt</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <div class="text-success fs-2 mb-1"><i class="bi bi-broadcast"></i></div>
+                    <h3 class="fw-bold mb-0">{{ stats.surveys_open }}</h3>
+                    <p class="text-muted small mb-0">Offene Umfragen</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <div class="text-info fs-2 mb-1"><i class="bi bi-people"></i></div>
+                    <h3 class="fw-bold mb-0">{{ stats.users_total }}</h3>
+                    <p class="text-muted small mb-0">Registrierte User</p>
+                    <div class="small text-muted mt-1">
+                        <span class="badge bg-primary-subtle text-primary border">{{ stats.users_customers }} Kunden</span>
+                        <span class="badge bg-light text-dark border">{{ stats.users_guests }} Gäste</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm text-center p-3 h-100">
+                    <div class="text-warning fs-2 mb-1"><i class="bi bi-lightning-charge"></i></div>
+                    <h3 class="fw-bold mb-0">{{ stats.votes_total }}</h3>
+                    <p class="text-muted small mb-0">Abgegebene Stimmen</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-5">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm p-3 h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="text-success fs-3 me-3"><i class="bi bi-trophy-fill"></i></div>
+                        <div class="flex-grow-1">
+                            <p class="text-muted small mb-1">Umfrage mit den meisten Abstimmungen</p>
+                            {% if stats.most_voted %}
+                                <div class="fw-bold">{{ stats.most_voted.title }}</div>
+                                <small class="text-muted">{{ stats.most_voted.votes }} Stimme(n)</small>
+                            {% else %}
+                                <div class="text-muted">—</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm p-3 h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="text-secondary fs-3 me-3"><i class="bi bi-arrow-down-circle"></i></div>
+                        <div class="flex-grow-1">
+                            <p class="text-muted small mb-1">Umfrage mit den wenigsten Abstimmungen</p>
+                            {% if stats.least_voted %}
+                                <div class="fw-bold">{{ stats.least_voted.title }}</div>
+                                <small class="text-muted">{{ stats.least_voted.votes }} Stimme(n)</small>
+                            {% else %}
+                                <div class="text-muted">—</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ===================== UMFRAGEN + RANGLISTE ===================== #}
         <div class="row g-4">
 
+            {# --- LINKS: 5 neueste Umfragen --- #}
             <div class="col-lg-8">
-
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                    <div class="card-header bg-primary text-white py-3">
-                        <h5 class="mb-0"><i class="bi bi-megaphone me-2"></i>Aktuellste Umfrage</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h2 class="card-title fw-bold">Wie zufrieden bist du mit unserem Service?</h2>
-                            <span class="badge bg-success">Aktiv</span>
-                        </div>
-                        <p class="text-muted mb-4">
-                            Deine Meinung ist uns wichtig! Nimm an unserer monatlichen Feedback-Runde teil.
-                        </p>
-
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between mb-1 small">
-                                <span>Bisherige Stimmen</span>
-                                <span>452 Stimmen</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 75%"></div>
-                            </div>
-                        </div>
-
-                        <a href="#" class="btn btn-primary px-4 shadow-sm">Jetzt abstimmen</a>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm text-center p-3 h-100">
-                            <div class="text-primary fs-1 mb-2"><i class="bi bi-journal-check"></i></div>
-                            <h3 class="fw-bold mb-0">24</h3>
-                            <p class="text-muted small mb-0">Umfragen gesamt</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm text-center p-3 h-100">
-                            <div class="text-success fs-1 mb-2"><i class="bi bi-people"></i></div>
-                            <h3 class="fw-bold mb-0">1.250</h3>
-                            <p class="text-muted small mb-0">Registrierte User</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm text-center p-3 h-100">
-                            <div class="text-warning fs-1 mb-2"><i class="bi bi-lightning-charge"></i></div>
-                            <h3 class="fw-bold mb-0">8.942</h3>
-                            <p class="text-muted small mb-0">Abgegebene Votes</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white fw-bold py-3">
-                        <i class="bi bi-trophy text-warning me-2"></i>Top 3 Voter
+                        <i class="bi bi-megaphone text-primary me-2"></i>Neueste Umfragen
+                        <span class="badge bg-light text-dark ms-2">{{ surveys|length }}</span>
                     </div>
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item d-flex align-items-center">
-                            <span class="badge bg-warning rounded-circle me-3" style="width: 24px; height: 24px;">1</span>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">Max_Power</div>
-                                <small class="text-muted">Profi-Voter</small>
+                        {% for survey in surveys %}
+                            {% set meta = survey_meta[survey.id] %}
+                            <div class="list-group-item p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="fw-bold mb-0">{{ survey.title }}</h5>
+                                    {% if meta.is_active %}
+                                        <span class="badge bg-success">Aktiv</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Abgeschlossen</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if survey.description %}
+                                    <p class="text-muted small mb-2">{{ survey.description }}</p>
+                                {% endif %}
+
+                                <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                                        <span class="badge bg-light text-dark fw-normal">
+                                            <i class="bi bi-tag me-1"></i> {{ meta.category }}
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-people me-1"></i> {{ meta.votes }} Teilnehmer
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            Bis {{ survey.endDate ? survey.endDate|date('d.m.Y') : '—' }}
+                                        </span>
+                                    </div>
+                                    <a href="{{ path('survey') }}" class="btn btn-sm btn-primary">Abstimmen</a>
+                                </div>
                             </div>
-                            <span class="badge bg-light text-dark">152 Votes</span>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                            <span class="badge bg-secondary rounded-circle me-3" style="width: 24px; height: 24px;">2</span>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">Lisa_Voter</div>
-                                <small class="text-muted">Kunde</small>
+                        {% else %}
+                            <div class="list-group-item p-5 text-center text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                Aktuell sind keine Umfragen vorhanden.
                             </div>
-                            <span class="badge bg-light text-dark">128 Votes</span>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                            <span class="badge rounded-circle me-3" style="background-color: #cd7f32; color: white; width: 24px; height: 24px;">3</span>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">The_Machine</div>
-                                <small class="text-muted">Kunde</small>
-                            </div>
-                            <span class="badge bg-light text-dark">94 Votes</span>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-
-                <div class="card border-0 bg-dark text-white shadow-sm overflow-hidden">
-                    <div class="card-body p-4 text-center">
-                        <h4 class="fw-bold mb-3 text-white">Mitmachen</h4>
-                        <p class="small text-white-50 mb-4">
-                            Werde Kunde und schalte exklusive Badges frei.
-                        </p>
-                        <div class="d-grid gap-2">
-                            <a href="#" class="btn btn-primary">Registrieren</a>
-                            <a href="#" class="btn btn-outline-light">Login</a>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
+            {# --- RECHTS: Top 10 Voter --- #}
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-trophy text-warning me-2"></i>Top 10 Voter
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for voter in leaderboard %}
+                            {% set isMe = app.user and voter.email == app.user.userIdentifier %}
+                            <div class="list-group-item d-flex align-items-center {{ isMe ? 'bg-light' : '' }}">
+                                <span class="badge rounded-circle me-3 d-flex align-items-center justify-content-center
+                                    {{ loop.index == 1 ? 'bg-warning text-dark' : (loop.index == 2 ? 'bg-secondary text-white' : '') }}"
+                                      style="width: 28px; height: 28px;
+                                      {%- if loop.index == 3 %} background-color:#cd7f32; color:#fff;
+                                      {%- elseif loop.index > 3 %} background-color:#e9ecef; color:#212529;{% endif %}">
+                                    {{ loop.index }}
+                                </span>
+                                <div class="flex-grow-1 text-truncate">
+                                    <div class="fw-bold text-truncate">
+                                        {{ voter.name }}
+                                        {% if isMe %}<span class="badge bg-primary ms-1">Du</span>{% endif %}
+                                    </div>
+                                    <small class="text-muted">{{ voter.rank }}</small>
+                                </div>
+                                <span class="badge bg-light text-dark ms-2">{{ voter.votes }} Votes</span>
+                            </div>
+                        {% else %}
+                            <div class="list-group-item text-center text-muted py-4">
+                                Noch keine Voter vorhanden.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 {% endblock %}

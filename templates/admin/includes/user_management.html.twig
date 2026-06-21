@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Benutzer-Management{% endblock %}
+
+{% block body %}
+    {% block page_content_navbar %}
+        {% include 'layout/navbar/navbar.html.twig' %}
+    {% endblock %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            {% include 'admin/includes/sidebar.html.twig' with { active: 'users' } %}
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                {% include 'admin/includes/flash.html.twig' %}
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 fw-bold">Benutzer-Management</h1>
+                    <span class="badge bg-light text-dark align-self-center">{{ users|length }} Benutzer</span>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 fw-bold">
+                        <i class="bi bi-people me-2 text-primary"></i>Alle Benutzer
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>E-Mail</th>
+                                <th>Rolle</th>
+                                <th>Votes</th>
+                                <th>Registriert</th>
+                                <th class="text-end">Rolle ändern</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ user.displayName }}</div>
+                                        <small class="text-muted">{{ user.email }}</small>
+                                        {% if user.upgradeRequested %}
+                                            <span class="badge bg-warning text-dark ms-1">
+                                                <i class="bi bi-hourglass-split me-1"></i>Aufstufung angefragt
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set badge = 'secondary' %}
+                                        {% if user.role == 'ROLE_ADMIN' %}
+                                            {% set badge = 'warning' %}
+                                        {% elseif user.role == 'ROLE_CUSTOMER' %}
+                                            {% set badge = 'primary' %}
+                                        {% endif %}
+                                        <span class="badge bg-{{ badge }}">{{ user.role }}</span>
+                                    </td>
+                                    <td>{{ user.voteCount }}</td>
+                                    <td><small>{{ user.createdAt ? user.createdAt|date('d.m.Y') : '' }}</small></td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                            {# Schnell-Freigabe, wenn eine Anfrage offen ist #}
+                                            {% if user.upgradeRequested %}
+                                                <form action="{{ path('acceptUpgrade', { id: user.id }) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('upgrade_' ~ user.id) }}">
+                                                    <button class="btn btn-sm btn-success" type="submit" title="Aufstufung freigeben">
+                                                        <i class="bi bi-check-lg"></i> Freigeben
+                                                    </button>
+                                                </form>
+                                                <form action="{{ path('rejectUpgrade', { id: user.id }) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('upgrade_' ~ user.id) }}">
+                                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Ablehnen">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            <form action="{{ path('updateUserRole', { id: user.id }) }}" method="post"
+                                                  class="d-inline-flex gap-2">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('update_role_' ~ user.id) }}">
+                                                <select name="role" class="form-select form-select-sm" style="width:auto;">
+                                                    <option value="ROLE_USER" {{ user.role == 'ROLE_USER' ? 'selected' : '' }}>Nutzer</option>
+                                                    <option value="ROLE_CUSTOMER" {{ user.role == 'ROLE_CUSTOMER' ? 'selected' : '' }}>Kunde</option>
+                                                    <option value="ROLE_ADMIN" {{ user.role == 'ROLE_ADMIN' ? 'selected' : '' }}>Admin</option>
+                                                </select>
+                                                <button class="btn btn-sm btn-primary" type="submit">Speichern</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">Keine Benutzer vorhanden.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <style>
+        .nav-link:hover { background-color: #f8f9fa; border-radius: 5px; }
+    </style>
+{% endblock %}

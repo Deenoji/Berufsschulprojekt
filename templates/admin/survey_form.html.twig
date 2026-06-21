@@ -12,18 +12,25 @@
 
                     <div class="modal-body p-4">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-8">
+                            <div class="col-12">
                                 <label class="form-label fw-bold">Titel der Umfrage</label>
                                 <input type="text" class="form-control" name="survey_title" placeholder="z.B. Zufriedenheit Stadtpark">
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Kategorie</label>
-                                <select class="form-select" name="category">
-                                    <option selected disabled>Wählen...</option>
-                                    {% for category in categories %}
-                                        <option value="{{ category.id }}">{{ category.title }}</option>
-                                    {% endfor %}
-                                </select>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Kategorien <small class="text-muted fw-normal">(eine oder mehrere)</small></label>
+                                {% if categories is empty %}
+                                    <div class="text-muted small">Noch keine Kategorien vorhanden – lege zuerst eine an.</div>
+                                {% else %}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for category in categories %}
+                                            <input type="checkbox" class="btn-check" name="category[]"
+                                                   id="form-cat-{{ category.id }}" value="{{ category.id }}" autocomplete="off">
+                                            <label class="btn btn-outline-secondary btn-sm" for="form-cat-{{ category.id }}">
+                                                <i class="bi bi-tag me-1"></i>{{ category.title }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -46,10 +53,7 @@
                         <hr class="my-4">
 
                         <div class="bg-light p-3 rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0 fw-bold"><i class="bi bi-question-circle me-2"></i>Fragen-Konfiguration</h6>
-                                <button type="button" class="btn btn-sm btn-outline-primary">+ Frage hinzufügen</button>
-                            </div>
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-question-circle me-2"></i>Frage-Konfiguration</h6>
 
                             <div class="card border-0 shadow-sm mb-3">
                                 <div class="card-body">
@@ -57,22 +61,23 @@
                                         <input type="text" class="form-control fw-bold" name="question" placeholder="Frage eingeben (z.B. Wie finden Sie den neuen Brunnen?)">
                                     </div>
 
-                                    <div class="row g-2 ms-3">
-                                        <div class="col-11">
-                                            <div class="input-group input-group-sm mb-2">
-                                                <span class="input-group-text">A</span>
-                                                <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit 1">
-                                            </div>
-                                            <div class="input-group input-group-sm mb-2">
-                                                <span class="input-group-text">B</span>
-                                                <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit 2">
-                                            </div>
+                                    {# Optionen: Start mit 2, per JS bis max. 4 #}
+                                    <div id="optionsContainer" class="ms-3">
+                                        <div class="input-group input-group-sm mb-2 option-row">
+                                            <span class="input-group-text option-letter" style="width: 38px; justify-content: center;">A</span>
+                                            <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit">
+                                            <button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>
                                         </div>
-                                        <div class="col-1 d-flex align-items-center">
-                                            <button type="button" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button>
+                                        <div class="input-group input-group-sm mb-2 option-row">
+                                            <span class="input-group-text option-letter" style="width: 38px; justify-content: center;">B</span>
+                                            <input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit">
+                                            <button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-link btn-sm text-decoration-none ps-3">+ Option hinzufügen</button>
+
+                                    <button type="button" id="addOption" class="btn btn-link btn-sm text-decoration-none ps-3">
+                                        + Option hinzufügen <span class="text-muted">(max. 4)</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -86,4 +91,59 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('optionsContainer');
+            const addBtn = document.getElementById('addOption');
+            if (!container || !addBtn) {
+                return;
+            }
+
+            const MAX = 4;
+            const MIN = 2;
+            const letters = ['A', 'B', 'C', 'D'];
+
+            function refresh() {
+                const rows = container.querySelectorAll('.option-row');
+                rows.forEach(function (row, i) {
+                    row.querySelector('.option-letter').textContent = letters[i] || (i + 1);
+                    // Entfernen nur erlauben, solange mehr als MIN vorhanden sind.
+                    row.querySelector('.remove-option').disabled = rows.length <= MIN;
+                });
+                addBtn.disabled = rows.length >= MAX;
+                addBtn.classList.toggle('disabled', rows.length >= MAX);
+            }
+
+            addBtn.addEventListener('click', function () {
+                const rows = container.querySelectorAll('.option-row');
+                if (rows.length >= MAX) {
+                    return;
+                }
+                const row = document.createElement('div');
+                row.className = 'input-group input-group-sm mb-2 option-row';
+                row.innerHTML =
+                    '<span class="input-group-text option-letter" style="width: 38px; justify-content: center;"></span>' +
+                    '<input type="text" class="form-control" name="option[]" placeholder="Antwortmöglichkeit">' +
+                    '<button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>';
+                container.appendChild(row);
+                refresh();
+            });
+
+            container.addEventListener('click', function (e) {
+                const btn = e.target.closest('.remove-option');
+                if (!btn) {
+                    return;
+                }
+                const rows = container.querySelectorAll('.option-row');
+                if (rows.length <= MIN) {
+                    return;
+                }
+                btn.closest('.option-row').remove();
+                refresh();
+            });
+
+            refresh();
+        });
+    </script>
 {% endblock %}

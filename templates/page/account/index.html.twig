@@ -9,106 +9,101 @@
     {% endblock %}
 
     <div class="container mt-5">
+
+        <div class="d-flex align-items-center mb-4">
+            <div>
+                <h1 class="fw-bold mb-1">{{ app.user.displayName }}</h1>
+                <p class="text-muted mb-0">{{ app.user.userIdentifier }}</p>
+            </div>
+        </div>
+
         <div class="row g-4">
 
+            {# --- LINKS: Teilgenommene Umfragen --- #}
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white py-3 border-bottom-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h4 class="fw-bold mb-0 text-primary">Umfrage: Mobilität 2026</h4>
-                            <span class="text-muted small">Frage 3 von 5</span>
-                        </div>
-                        <div class="progress mt-3" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: 60%"></div>
-                        </div>
+                    <div class="card-header bg-white py-3 fw-bold border-bottom-0">
+                        <i class="bi bi-clipboard-check text-primary me-2"></i>Meine Umfragen
+                        <span class="badge bg-light text-dark ms-2">{{ participated|length }}</span>
                     </div>
-
-                    <div class="card-body p-4 p-md-5">
-                        <div class="mb-5">
-                            <h3 class="fw-bold mb-4">Welches Verkehrsmittel nutzen Sie am häufigsten für den Arbeitsweg?</h3>
-
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="selection-card p-3 border rounded d-flex align-items-center">
-                                        <input type="radio" name="vote_option" class="form-check-input me-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-box bg-light rounded p-2 me-3">
-                                                <i class="bi bi-car-front fs-4 text-primary"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">Privat-PKW</div>
-                                                <small class="text-muted">Alleinige Nutzung des Autos</small>
-                                            </div>
-                                        </div>
-                                    </label>
+                    <ul class="list-group list-group-flush">
+                        {% for item in participated %}
+                            <li class="list-group-item p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="fw-bold mb-0">{{ item.survey.title }}</h5>
+                                    {% if item.is_active %}
+                                        <span class="badge bg-success-soft text-success border border-success">Aktiv</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Abgeschlossen</span>
+                                    {% endif %}
                                 </div>
-
-                                <div class="col-12">
-                                    <label class="selection-card p-3 border rounded d-flex align-items-center selected">
-                                        <input type="radio" name="vote_option" class="form-check-input me-3" checked>
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-box bg-light rounded p-2 me-3">
-                                                <i class="bi bi-bus-front fs-4 text-primary"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">Öffentlicher Nahverkehr</div>
-                                                <small class="text-muted">Bus, Bahn oder Tram</small>
-                                            </div>
-                                        </div>
-                                    </label>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <span class="badge bg-light text-dark fw-normal">
+                                        <i class="bi bi-tag me-1"></i> {{ item.category }}
+                                    </span>
+                                    <span class="text-muted small">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        Bis {{ item.survey.endDate ? item.survey.endDate|date('d.m.Y') : '—' }}
+                                    </span>
                                 </div>
-
-                                <div class="col-12">
-                                    <label class="selection-card p-3 border rounded d-flex align-items-center">
-                                        <input type="radio" name="vote_option" class="form-check-input me-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-box bg-light rounded p-2 me-3">
-                                                <i class="bi bi-bicycle fs-4 text-primary"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">Fahrrad / E-Bike</div>
-                                                <small class="text-muted">Muskelkraft oder elektrisch unterstützt</small>
-                                            </div>
-                                        </div>
-                                    </label>
+                                {% if item.choices is not empty %}
+                                    <div class="small">
+                                        <span class="text-muted">Deine Wahl:</span>
+                                        {% for choice in item.choices %}
+                                            <span class="badge bg-primary-subtle text-primary border">{{ choice }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% else %}
+                            <li class="list-group-item p-5 text-center text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                Du hast noch an keiner Umfrage teilgenommen.
+                                <div class="mt-3">
+                                    <a href="{{ path('survey') }}" class="btn btn-sm btn-primary">Zu den Umfragen</a>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Möchten Sie uns noch etwas dazu sagen?</label>
-                            <textarea class="form-control" rows="3" placeholder="Optionaler Kommentar..."></textarea>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-outline-secondary px-4 py-2">Zurück</button>
-                            <button class="btn btn-primary px-5 py-2 fw-bold shadow-sm">Nächste Frage <i class="bi bi-arrow-right ms-2"></i></button>
-                        </div>
-                    </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
 
+            {# --- RECHTS: Status, Rang, Badge, Fortschritt --- #}
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm bg-primary text-white mb-4">
                     <div class="card-body p-4">
-                        <h5 class="fw-bold mb-3">Dein Status</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Dein Status</h5>
+                            <span class="badge bg-white text-primary">Rolle: {{ role_label }}</span>
+                        </div>
+
                         <div class="d-flex align-items-center mb-4">
                             <div class="badge-icon me-3 bg-white text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                <i class="bi bi-trophy-fill fs-2"></i>
+                                <i class="bi {{ rank.icon }} fs-2"></i>
                             </div>
                             <div>
-                                <div class="h4 mb-0 fw-bold">Level 4</div>
-                                <div class="opacity-75">Profi-Voter</div>
+                                <div class="h4 mb-0 fw-bold">Level {{ rank.level }}</div>
+                                <div class="opacity-75">{{ rank.name }}</div>
                             </div>
                         </div>
 
-                        <div class="mb-2 d-flex justify-content-between small">
-                            <span>Noch 3 Votes bis Level 5</span>
-                            <span>12/15</span>
-                        </div>
-                        <div class="progress bg-white bg-opacity-25 shadow-sm" style="height: 10px;">
-                            <div class="progress-bar bg-white" style="width: 80%"></div>
-                        </div>
+                        {% if rank.is_max %}
+                            <div class="mb-2 small fw-bold">
+                                <i class="bi bi-stars me-1"></i> Maximaler Rang erreicht!
+                            </div>
+                            <div class="progress bg-white bg-opacity-25 shadow-sm" style="height: 10px;">
+                                <div class="progress-bar bg-white" style="width: 100%"></div>
+                            </div>
+                            <div class="small mt-2 opacity-75">{{ vote_count }} Votes gesammelt</div>
+                        {% else %}
+                            <div class="mb-2 d-flex justify-content-between small">
+                                <span>Noch {{ rank.votes_to_next }} Votes bis {{ rank.next_name }}</span>
+                                <span>{{ vote_count }}/{{ rank.next_min }}</span>
+                            </div>
+                            <div class="progress bg-white bg-opacity-25 shadow-sm" style="height: 10px;">
+                                <div class="progress-bar bg-white" style="width: {{ rank.progress }}%"></div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -116,8 +111,8 @@
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary me-2"></i>Deine Belohnung</h6>
                         <p class="small text-muted mb-0">
-                            Für jede abgeschlossene Umfrage erhältst du <strong>1 Vote-Punkt</strong>.
-                            Sammle Punkte, um exklusive Badges freizuschalten und deine Meinung in der Statistik stärker zu gewichten.
+                            Für jede Umfrage, an der du teilnimmst, erhältst du <strong>1 Vote-Punkt</strong>.
+                            Sammle Punkte, um höhere Ränge und exklusive Badges freizuschalten.
                         </p>
                     </div>
                 </div>
@@ -127,25 +122,7 @@
     </div>
 
     <style>
-        /* Styling für die Antwort-Karten */
-        .selection-card {
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            border: 2px solid #e9ecef !important;
-        }
-        .selection-card:hover {
-            background-color: #f8f9fa;
-            border-color: #dee2e6 !important;
-        }
-        .selection-card.selected {
-            border-color: #0d6efd !important;
-            background-color: #f0f7ff;
-        }
-        /* Die Radio-Buttons verstecken oder stylen */
-        .selection-card input[type="radio"] {
-            width: 20px;
-            height: 20px;
-        }
+        .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
     </style>
 
 {% endblock %}

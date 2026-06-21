@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Umfrage bearbeiten{% endblock %}
+
+{% block body %}
+    {% block page_content_navbar %}
+        {% include 'layout/navbar/navbar.html.twig' %}
+    {% endblock %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            {% include 'admin/includes/sidebar.html.twig' with { active: 'surveys' } %}
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                {% include 'admin/includes/flash.html.twig' %}
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 fw-bold">Umfrage bearbeiten</h1>
+                    <a href="{{ path('surveyManagement') }}" class="btn btn-sm btn-light border">
+                        <i class="bi bi-arrow-left me-1"></i> Zurück
+                    </a>
+                </div>
+
+                <form action="{{ path('updateSurvey', { id: survey.id }) }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('edit_survey_' ~ survey.id) }}">
+
+                    {# --- Stammdaten --- #}
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Titel der Umfrage</label>
+                                <input type="text" name="survey_title" class="form-control" value="{{ survey.title }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Kategorien <small class="text-muted fw-normal">(eine oder mehrere)</small></label>
+                                {% if categories is empty %}
+                                    <div class="text-muted small">Keine Kategorien vorhanden.</div>
+                                {% else %}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for category in categories %}
+                                            <input type="checkbox" class="btn-check" name="category[]"
+                                                   id="edit-cat-{{ category.id }}" value="{{ category.id }}" autocomplete="off"
+                                                    {{ category.id in selected_categories ? 'checked' : '' }}>
+                                            <label class="btn btn-outline-secondary btn-sm" for="edit-cat-{{ category.id }}">
+                                                <i class="bi bi-tag me-1"></i>{{ category.title }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Kurzbeschreibung</label>
+                                <textarea name="survey_description" class="form-control" rows="2">{{ survey.description }}</textarea>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Startdatum</label>
+                                    <input type="date" name="start_date" class="form-control"
+                                           value="{{ survey.startDate ? survey.startDate|date('Y-m-d') : '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Enddatum</label>
+                                    <input type="date" name="end_date" class="form-control"
+                                           value="{{ survey.endDate ? survey.endDate|date('Y-m-d') : '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="ACTIVE" {{ survey.status == 'ACTIVE' ? 'selected' : '' }}>Aktiv</option>
+                                        <option value="CLOSED" {{ survey.status != 'ACTIVE' ? 'selected' : '' }}>Abgeschlossen</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# --- Frage & Optionen --- #}
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-question-circle me-2"></i>Frage &amp; Antwortoptionen</h6>
+
+                            <div class="mb-3">
+                                <input type="text" name="question" class="form-control fw-bold"
+                                       value="{{ question ? question.questionText : '' }}" placeholder="Frage eingeben">
+                            </div>
+
+                            <div id="optionsContainer" class="ms-3">
+                                {% for option in options %}
+                                    <div class="input-group input-group-sm mb-2 option-row">
+                                        <span class="input-group-text option-letter" style="width: 38px; justify-content: center;"></span>
+                                        <input type="hidden" name="option_id[]" value="{{ option.id }}">
+                                        <input type="text" class="form-control" name="option_text[]" value="{{ option.optionText }}" placeholder="Antwortmöglichkeit">
+                                        <button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                {% endfor %}
+
+                                {# Auf mindestens 2 Optionen auffuellen #}
+                                {% set emptyRows = options|length < 2 ? 2 - options|length : 0 %}
+                                {% if emptyRows > 0 %}
+                                    {% for i in 1..emptyRows %}
+                                        <div class="input-group input-group-sm mb-2 option-row">
+                                            <span class="input-group-text option-letter" style="width: 38px; justify-content: center;"></span>
+                                            <input type="hidden" name="option_id[]" value="">
+                                            <input type="text" class="form-control" name="option_text[]" value="" placeholder="Antwortmöglichkeit">
+                                            <button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <button type="button" id="addOption" class="btn btn-link btn-sm text-decoration-none ps-3">
+                                + Option hinzufügen <span class="text-muted">(max. 4)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mb-5">
+                        <a href="{{ path('surveyManagement') }}" class="btn btn-secondary">Abbrechen</a>
+                        <button type="submit" class="btn btn-primary px-4">Änderungen speichern</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('optionsContainer');
+            const addBtn = document.getElementById('addOption');
+            if (!container || !addBtn) {
+                return;
+            }
+
+            const MAX = 4;
+            const MIN = 2;
+            const letters = ['A', 'B', 'C', 'D'];
+
+            function refresh() {
+                const rows = container.querySelectorAll('.option-row');
+                rows.forEach(function (row, i) {
+                    row.querySelector('.option-letter').textContent = letters[i] || (i + 1);
+                    row.querySelector('.remove-option').disabled = rows.length <= MIN;
+                });
+                addBtn.disabled = rows.length >= MAX;
+                addBtn.classList.toggle('disabled', rows.length >= MAX);
+            }
+
+            addBtn.addEventListener('click', function () {
+                const rows = container.querySelectorAll('.option-row');
+                if (rows.length >= MAX) {
+                    return;
+                }
+                const row = document.createElement('div');
+                row.className = 'input-group input-group-sm mb-2 option-row';
+                row.innerHTML =
+                    '<span class="input-group-text option-letter" style="width: 38px; justify-content: center;"></span>' +
+                    '<input type="hidden" name="option_id[]" value="">' +
+                    '<input type="text" class="form-control" name="option_text[]" placeholder="Antwortmöglichkeit">' +
+                    '<button type="button" class="btn btn-outline-danger remove-option" title="Entfernen"><i class="bi bi-trash"></i></button>';
+                container.appendChild(row);
+                refresh();
+            });
+
+            container.addEventListener('click', function (e) {
+                const btn = e.target.closest('.remove-option');
+                if (!btn) {
+                    return;
+                }
+                const rows = container.querySelectorAll('.option-row');
+                if (rows.length <= MIN) {
+                    return;
+                }
+                btn.closest('.option-row').remove();
+                refresh();
+            });
+
+            refresh();
+        });
+    </script>
+
+    <style>
+        .nav-link:hover { background-color: #f8f9fa; border-radius: 5px; }
+    </style>
+{% endblock %}

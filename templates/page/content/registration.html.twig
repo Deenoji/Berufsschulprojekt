@@ -7,6 +7,13 @@
         <div class="card shadow-lg border-0" style="max-width: 450px; width: 100%; border-radius: 15px;">
             <div class="card-body p-5">
 
+                {# Flash-Meldungen (Erfolg / Fehler aus dem Controller) #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} small border-0">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+
                 {# Tab-Navigation für einfaches Umschalten #}
                 <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -24,7 +31,7 @@
                         <form action="{{ path('login') }}" method="post">
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">E-Mail Adresse</label>
-                                <input type="email" name="_username" class="form-control form-control-lg bg-light border-0" placeholder="name@beispiel.de" required autofocus>
+                                <input type="email" name="_username" value="{{ last_username|default('') }}" class="form-control form-control-lg bg-light border-0" placeholder="name@beispiel.de" required autofocus>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label small fw-bold">Passwort</label>
