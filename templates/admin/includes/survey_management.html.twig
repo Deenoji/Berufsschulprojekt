@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Umfrage-Management{% endblock %}
+
+{% block body %}
+    {% block page_content_navbar %}
+        {% include 'layout/navbar/navbar.html.twig' %}
+    {% endblock %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            {% include 'admin/includes/sidebar.html.twig' with { active: 'surveys' } %}
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                {% include 'admin/includes/flash.html.twig' %}
+
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 fw-bold">Umfrage-Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSurveyModal"
+                                {{ categories is empty ? 'disabled title="Erst eine Kategorie anlegen"' : '' }}>
+                            <i class="bi bi-plus-lg me-1"></i> Neue Umfrage erstellen
+                        </button>
+                    </div>
+                </div>
+
+                {% if categories is empty %}
+                    <div class="alert alert-info border-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Lege zuerst rechts eine <strong>Kategorie</strong> an – ohne Kategorie lässt sich keine Umfrage erstellen.
+                    </div>
+                {% endif %}
+
+                <div class="row g-4">
+                    {# --- Umfragen-Liste --- #}
+                    <div class="col-xl-8">
+                        {% include 'admin/includes/survey_table.html.twig' with {
+                            surveys: surveys,
+                            category_map: category_map,
+                        } %}
+                    </div>
+
+                    {# --- Kategorie-Verwaltung --- #}
+                    <div class="col-xl-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 fw-bold">
+                                <i class="bi bi-tags me-2 text-primary"></i>Kategorien
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ path('addCategory') }}" method="post">
+                                    <label class="form-label small fw-bold">Neue Kategorie</label>
+                                    <div class="input-group">
+                                        <input type="text" name="category_title" class="form-control"
+                                               placeholder="z.B. Umwelt" maxlength="60" required>
+                                        <button class="btn btn-primary" type="submit">Anlegen</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                {% for category in categories %}
+                                    {% set usage = surveys_per_category[category.id]|default(0) %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>{{ category.title }}</span>
+                                        <span class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-light text-dark">{{ usage }} Umfrage(n)</span>
+                                            {% if usage == 0 %}
+                                                <form action="{{ path('deleteCategory', { id: category.id }) }}" method="post"
+                                                      class="d-inline" onsubmit="return confirm('Kategorie löschen?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_category_' ~ category.id) }}">
+                                                    <button class="btn btn-sm btn-outline-danger" title="Löschen">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </span>
+                                    </li>
+                                {% else %}
+                                    <li class="list-group-item text-muted small text-center py-3">
+                                        Noch keine Kategorien.
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {# Modal zum Erstellen einer Umfrage (bestehendes Partial) #}
+    {% include 'admin/survey_form.html.twig' with {
+        'categories': categories,
+    } %}
+
+    <style>
+        .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+        .nav-link:hover { background-color: #f8f9fa; border-radius: 5px; }
+    </style>
+{% endblock %}

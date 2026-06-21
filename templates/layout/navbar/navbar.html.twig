@@ -1,7 +1,7 @@
 {% block layout_navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
+            <a class="navbar-brand fw-bold" href="{{ path('dashboard') }}">
                 <span class="text-primary">VOTE</span>PORTAL
             </a>
 
@@ -17,45 +17,93 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('survey') }}">Umfragen</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-warning" href="{{ path('admin') }}">Admin-Bereich</a>
-                    </li>
+                    {# Admin-Link nur fuer Admins #}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" href="{{ path('admin') }}">Admin-Bereich</a>
+                        </li>
+                    {% endif %}
                 </ul>
 
                 <ul class="navbar-nav ms-auto align-items-center">
+                    {% if app.user %}
+                        {# --- EINGELOGGT --- #}
 
-                    <li class="nav-item me-3 d-none d-lg-block">
-                        <small class="text-white-50">user@beispiel.de</small>
-                    </li>
+                        {# Rollen-Label ableiten #}
+                        {% set roleLabel = 'Nutzer' %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                            {% set roleLabel = 'Admin' %}
+                        {% elseif is_granted('ROLE_CUSTOMER') %}
+                            {% set roleLabel = 'Kunde' %}
+                        {% endif %}
 
-                    <li class="nav-item me-3">
-                        <div class="d-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1">
-                            <span class="badge bg-primary me-2">Kunde</span>
+                        {# Level aus der Vote-Anzahl ableiten (Schwellen frei anpassbar) #}
+                        {% set votes = app.user.voteCount %}
+                        {% set level = 'Neuling' %}
+                        {% if votes >= 50 %}
+                            {% set level = 'Profi-Voter' %}
+                        {% elseif votes >= 10 %}
+                            {% set level = 'Aktiver Voter' %}
+                        {% endif %}
 
-                            <span class="text-light small me-2">
-                            <strong>12</strong> <small class="text-white-50">Votes</small>
-                        </span>
+                        <li class="nav-item me-3 d-none d-lg-block">
+                            <small class="text-white-50">{{ app.user.displayName }}</small>
+                        </li>
 
-                            <span class="badge rounded-pill bg-success" title="Level">
-                            Profi-Voter
-                        </span>
-                        </div>
-                    </li>
+                        <li class="nav-item me-3">
+                            <div class="d-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1">
+                                <span class="badge bg-primary me-2">{{ roleLabel }}</span>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle btn btn-outline-light btn-sm px-3" href="#" role="button" data-bs-toggle="dropdown">
-                            Mein Konto
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item" href="{{ path('account') }}">Profil verwalten</a></li>
-                            <li><a class="dropdown-item text-primary" href="#">Zum Kunden hochstufen</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Registrieren</a></li>
-                            <li><a class="dropdown-item" href="#">Login</a></li>
-                            <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
-                        </ul>
-                    </li>
+                                <span class="text-light small me-2">
+                                    <strong>{{ votes }}</strong> <small class="text-white-50">Votes</small>
+                                </span>
 
+                                <span class="badge rounded-pill bg-success" title="Level">
+                                    {{ level }}
+                                </span>
+                            </div>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle btn btn-outline-light btn-sm px-3" href="#" role="button" data-bs-toggle="dropdown">
+                                Mein Konto
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="{{ path('account') }}">Profil verwalten</a></li>
+
+                                {# Aufstufung nur fuer reine ROLE_USER (nicht Kunde/Admin) #}
+                                {% if app.user.role == 'ROLE_USER' %}
+                                    {% if app.user.upgradeRequested %}
+                                        <li>
+                                            <span class="dropdown-item-text text-muted small">
+                                                <i class="bi bi-hourglass-split me-1"></i>Aufstufung angefragt
+                                            </span>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <form action="{{ path('requestUpgrade') }}" method="post" class="m-0">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('request_upgrade') }}">
+                                                <button type="submit" class="dropdown-item text-primary">
+                                                    <i class="bi bi-arrow-up-circle me-1"></i>Zum Kunden hochstufen
+                                                </button>
+                                            </form>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        {# --- NICHT EINGELOGGT --- #}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('registration_index') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm px-3" href="{{ path('registration_index') }}">Registrieren</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
